@@ -1,0 +1,9 @@
+item{
+    id: 1
+    name: 'goldenGate'
+}
+
+item{
+    id: 2
+    name: 'Nyatapola'
+}
