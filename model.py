@@ -3,23 +3,39 @@ import tensorflow as tf
 import numpy as np
 from PIL import Image
 from pathlib import Path
-import matplotlib.pyplot as plt
-import cv2
+import math
 import keras_cv
+import matplotlib.pyplot as plt
 import keras_cv.visualization as visualization
+import cv2
+import keras
+from keras_cv import models, losses, callbacks
+import keras_cv.losses as losses
 from keras_cv.models import YOLOV8Detector
 import matplotlib.patches as patches
+from tensorflow import data as tf_data
+import tensorflow_datasets as tfds
+import keras
+import keras_cv
+import numpy as np
+from keras_cv import bounding_box
+import os
+from keras_cv import visualization
+import tqdm
 
-# Constants
 IMAGE_SIZE = (640, 640)  # Input size for YOLOv8
 BATCH_SIZE = 3  # Number of samples per batch
 NUM_CLASSES = 1  # Example number of classes, adjust as needed
 BOUNDING_BOX_FORMAT = "xywh"  # YOLO bounding box format
 PAD_TO_ASPECT_RATIO = True  # To maintain aspect ratio when resizing
+LEARNING_RATE = 0.001
+EPOCH = 1
+GLOBAL_CLIPNORM = 10.0
 
 # Paths to the datasets
 TRAIN_IMAGES_DIR = Path("dataset/train/images/")
 TRAIN_LABELS_DIR = Path("dataset/train/labels/")
+
 VAL_IMAGES_DIR = Path("dataset/val/images/")
 VAL_LABELS_DIR = Path("dataset/val/labels/")
 
@@ -67,9 +83,28 @@ def load_sample(image_path, labels_dir):
 
 # Function to resize image for inference
 def inference_resizing(image, annotations):
-    print(f"Image shape: {image.shape}, Annotations: {annotations}")
-    resized_image = tf.image.resize(image, [224, 224])
+    resized_image = tf.image.resize(image, [640, 640])
     return resized_image, annotations
+
+
+# Function to count elements in a dataset
+def count_elements(dataset):
+    return dataset.cardinality().numpy()
+
+# Check if the dataset is empty
+def is_dataset_empty(dataset):
+    return count_elements(dataset) <= 0
+
+# Function to separate class IDs from bounding box coordinates
+def extract_bounding_box_info(bounding_boxes_raw):
+    # Check if the last dimension has five elements
+    if bounding_boxes_raw.shape[-1] == 5:
+        # Extract the class ID (last element) and bounding box coordinates
+        class_ids = bounding_boxes_raw[0]  # The last element is the class ID
+        bounding_boxes = bounding_boxes_raw[0: ...]  # The rest is the bounding box coordinates
+    else:
+        raise ValueError(f"Unexpected bounding box shape: {bounding_boxes_raw.shape}")
+    return bounding_boxes, class_ids
 
 # Function to normalize image data
 def normalize_image_data(image):
@@ -87,104 +122,124 @@ def ensure_rgb_format(image):
         return image[..., ::-1]  # Reverse the color channels to convert BGR to RGB
     return image
 
+
 # Function to filter out empty annotations
 def filter_empty_annotations(image, annotations):
-    return tf.size(annotations) > 0
+  return tf.size(annotations) > 0  # Check if there are any annotations
 
-# Function to pad annotations to ensure consistent shape
 def pad_annotations(image, annotations, max_annotations=5):
-    padding = [[0, max_annotations - tf.shape(annotations)[0]], [0, 0]]
-    annotations = tf.pad(annotations, padding, constant_values=-1)  # Using -1 to indicate padding
-    return image, annotations
+    num_annotations = tf.shape(annotations)[0]
+    annotations = tf.reshape(annotations, [num_annotations, 5])
 
-# Data loader with flexible batch size and error handling
+    padding = [[0, max_annotations - num_annotations], [0, 0]]
+    annotations = tf.pad(annotations, padding, constant_values=-1)
+
+    boxes = annotations[:, :4]
+    classes = tf.expand_dims(annotations[:, 4], axis=-1)
+    
+    return image, {'boxes': boxes, 'classes': classes}
+
 def data_loader(images_dir, labels_dir, batch_size):
     image_paths = list(Path(images_dir).rglob("*.jpg")) + list(Path(images_dir).rglob("*.png"))
-    
+
     if len(image_paths) == 0:
         raise ValueError(f"No images found in {images_dir}. Check your dataset path.")
 
-    # Create TensorFlow dataset object from list of image paths
     dataset = tf.data.Dataset.from_tensor_slices([str(p) for p in image_paths])
 
-    # Map function to load images and annotations with error handling
-    dataset = dataset.map(
-        lambda x: tf.py_function(
+    def load_sample_with_shape(image_path):
+        image, annotations = tf.py_function(
             lambda y: load_sample(y, labels_dir),
-            [x],
+            [image_path],
             [tf.float32, tf.float32]
-        ),
-        num_parallel_calls=tf.data.AUTOTUNE,
+        )
+        image.set_shape(IMAGE_SIZE + (3,))
+        annotations.set_shape([None, 5])
+        return image, annotations
+
+    dataset = dataset.map(load_sample_with_shape, num_parallel_calls=tf.data.AUTOTUNE)
+
+    # def resize_with_shape(image, annotations):
+    #     image, annotations = tf.py_function(
+    #         func=lambda img, ann: inference_resizing(img, ann),
+    #         inp=[image, annotations],
+    #         Tout=[tf.float32, tf.float32]
+    #     )
+    #     image.set_shape([640, 640, 3])
+    #     annotations.set_shape([None, 5])
+    #     return image, annotations
+
+    # dataset = dataset.map(resize_with_shape, num_parallel_calls=tf.data.AUTOTUNE)
+
+    # def normalize_with_shape(image, annotations):
+    #     image, annotations = tf.py_function(
+    #         func=lambda img, ann: (normalize_image_data(img), ann),
+    #         inp=[image, annotations],
+    #         Tout=[tf.float32, tf.float32]
+    #     )
+    #     image.set_shape([640, 640, 3])
+    #     annotations.set_shape([None, 5])
+    #     return image, annotations
+
+    # dataset = dataset.map(normalize_with_shape, num_parallel_calls=tf.data.AUTOTUNE)
+
+    # def ensure_rgb_with_shape(image, annotations):
+    #     image, annotations = tf.py_function(
+    #         func=lambda img, ann: (ensure_rgb_format(img), ann),
+    #         inp=[image, annotations],
+    #         Tout=[tf.float32, tf.float32]
+    #     )
+    #     image.set_shape([640, 640, 3])
+    #     annotations.set_shape([None, 5])
+    #     return image, annotations
+
+    # dataset = dataset.map(ensure_rgb_with_shape, num_parallel_calls=tf.data.AUTOTUNE)
+
+    dataset = dataset.filter(lambda image, annotations: tf.py_function(
+        func=filter_empty_annotations,
+        inp=[image, annotations],
+        Tout=tf.bool)
     )
 
-    # Apply the resizing function
-    dataset = dataset.map(
-        lambda image, annotations: tf.py_function(
-            func=lambda img, ann: inference_resizing(img, ann),
-            inp=[image, annotations],
-            Tout=[tf.float32, tf.float32]
-        ),
-        num_parallel_calls=tf.data.AUTOTUNE,
-    )
-
-    # Normalize image data
-    dataset = dataset.map(
-        lambda image, annotations: tf.py_function(
-            func=lambda img, ann: (normalize_image_data(img), ann),
-            inp=[image, annotations],
-            Tout=[tf.float32, tf.float32]
-        ),
-        num_parallel_calls=tf.data.AUTOTUNE,
-    )
-
-    # Ensure RGB format
-    dataset = dataset.map(
-        lambda image, annotations: tf.py_function(
-            func=lambda img, ann: (ensure_rgb_format(img), ann),
-            inp=[image, annotations],
-            Tout=[tf.float32, tf.float32]
-        ),
-        num_parallel_calls=tf.data.AUTOTUNE,
-    )
-
-    # Filter and pad annotations
-    dataset = dataset.filter(filter_empty_annotations)
     dataset = dataset.map(lambda image, annotations: pad_annotations(image, annotations))
 
-    # Apply batching, allowing for partial batches
     dataset = dataset.batch(batch_size, drop_remainder=False).prefetch(tf.data.AUTOTUNE)
-    
+
     return dataset
-
-# Function to visualize the dataset
-def visualize_dataset(dataset, value_range, default_rows, default_cols, bounding_box_format):
-    # Get the first batch from the dataset
-    batch = next(iter(dataset.take(1)))  # Get the first batch
-
-    # Extract images and raw bounding boxes
-    images, bounding_boxes_raw = batch
-
-    # Adjust the number of rows and columns for visualization
-    rows = default_rows
-    cols = default_cols
-
-    fig, axs = plt.subplots(rows, cols, figsize=(15, 15))
-    axs = axs.flatten() if rows * cols > 1 else [axs]
-
-    for ax, image, bboxes in zip(axs, images, bounding_boxes_raw):
-        ax.imshow(image, vmin=value_range[0], vmax=value_range[1])
-        for bbox in bboxes:
-            if tf.reduce_all(bbox != -1):  # Ensure bounding box is not just padding
-                x_min, y_min, x_max, y_max, _ = bbox
-                rect = patches.Rectangle((x_min, y_min), x_max - x_min, y_max - y_min, linewidth=2, edgecolor='r', facecolor='none')
-                ax.add_patch(rect)
-
-    plt.tight_layout()
-    plt.show()
 
 # Create datasets for training, validation, and testing
 train_dataset = data_loader(TRAIN_IMAGES_DIR, TRAIN_LABELS_DIR, BATCH_SIZE)
 val_dataset = data_loader(VAL_IMAGES_DIR, VAL_LABELS_DIR, BATCH_SIZE // 2)
 
-# Visualize the dataset
-visualize_dataset(train_dataset, value_range=(0, 1), default_rows=1, default_cols=1, bounding_box_format="xyxy")
+
+class_ids = [
+    "Nyatapola"
+]
+class_mapping = dict(zip(range(len(class_ids)), class_ids))
+
+backbone = keras_cv.models.YOLOV8Backbone.from_preset(
+    "yolo_v8_s_backbone_coco"  # We will use yolov8 small backbone with coco weights
+)
+
+optimizer = tf.keras.optimizers.Adam(
+    learning_rate=LEARNING_RATE,
+    global_clipnorm=GLOBAL_CLIPNORM,
+)
+
+yolo = keras_cv.models.YOLOV8Detector(
+    num_classes=len(class_mapping),
+    bounding_box_format="xyxy",
+    backbone=backbone,
+    fpn_depth=1,
+    # label_encoder=YOLOV8LabelEncoder
+)
+
+yolo.compile(
+    optimizer=optimizer, classification_loss="binary_crossentropy", box_loss="ciou"
+)
+
+yolo.fit(
+    train_dataset,
+    validation_data=val_dataset,
+    epochs=EPOCH
+)
