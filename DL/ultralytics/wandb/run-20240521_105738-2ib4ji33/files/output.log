@@ -1,0 +1,12 @@
+[34m[1mtrain: [39m[22mScanning D:\Projects\DL\MonumentDetection\DL\dataset\labels.cache... 100 images, 0 backgrounds, 36 corrupt: 100%|██████████|
+[34m[1mval: [39m[22mScanning D:\Projects\DL\MonumentDetection\DL\dataset\labels.cache... 100 images, 0 backgrounds, 36 corrupt: 100%|██████████| 10
+
+
+
+        1/1         0G      3.231      3.749      4.251         42        640: 100%|██████████| 4/4 [00:59<00:00, 14.91s/it]
+
+
+                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 100%|██████████| 2/2 [00:24<00:00, 12.11s/
+
+
+                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 100%|██████████| 2/2 [00:19<00:00,  9.52s/

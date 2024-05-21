@@ -1,3 +1,0 @@
-python model_main_tf2.py --pipeline_config_path=ssd_mobilenet_v1_fpn_640x640_coco17_tpu-8.config --model_dir=training --alsologtostderr
-
-python model_main_tf2.py --model_dir=training/ --pipeline_config_path=model_config.config

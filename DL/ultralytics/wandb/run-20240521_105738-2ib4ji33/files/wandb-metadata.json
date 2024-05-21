@@ -1,0 +1,44 @@
+{
+    "os": "Windows-11-10.0.22631-SP0",
+    "python": "3.12.3",
+    "heartbeatAt": "2024-05-21T05:12:40.923034",
+    "startedAt": "2024-05-21T05:12:38.246770",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "<python with no main file>",
+    "codePathLocal": null,
+    "git": {
+        "remote": "https://github.com/prekshya-dawadi/Smarak.git",
+        "commit": "cfdaeb8de6d227ff258dbf4dee65ec1d8ac4e302"
+    },
+    "email": "prekshya019@gmail.com",
+    "root": "D:/Projects/DL/MonumentDetection",
+    "host": "DESKTOP-D8A06LU",
+    "username": "acer",
+    "executable": "D:\\miniconda\\envs\\object_detection\\python.exe",
+    "cpu_count": 4,
+    "cpu_count_logical": 8,
+    "cpu_freq": {
+        "current": 1209.0,
+        "min": 0.0,
+        "max": 2419.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 1209.0,
+            "min": 0.0,
+            "max": 2419.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 273.43651962280273,
+            "used": 71.5610580444336
+        }
+    },
+    "memory": {
+        "total": 15.784477233886719
+    }
+}

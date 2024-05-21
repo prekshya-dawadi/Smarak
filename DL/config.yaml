@@ -1,7 +1,0 @@
-path: D:/Projects/DL/MonumentDetection/DL/dataset
-train: images/
-val: images/
-
-#Classes
-names:
-  0: nyathapola
