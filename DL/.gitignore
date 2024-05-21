@@ -1,1 +1,4 @@
 dataset/
+annotations/
+train/
+val/
