@@ -1,4 +1,4 @@
-path: "D:/Projects/DL/MonumentDetection/DL/ultralytics/dataset"
+path: "D:/Projects/DL/MonumentDetection/DL/ultralytics/dataset-dummy"
 train: train/images
 val: val/images
 
