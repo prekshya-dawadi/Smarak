@@ -4,3 +4,4 @@ train/
 val/
 ultralytics/datasetUnstructured
 dataset-dummy/
+augmented/
