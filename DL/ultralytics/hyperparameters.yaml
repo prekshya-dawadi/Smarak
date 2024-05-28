@@ -1,0 +1,77 @@
+
+# Learning and Optimization Hyperparameters
+
+
+# starting learning rate for the optimizer. higher learning rate 
+# can speed of training but too high can make training unstable.
+lr0: 0.01  # Initial learning rate
+
+# rate the model will decay to over the course of training. 
+# lower final learning rate can help the model to converge 
+# more accurately.
+lrf: 0.01  # Final learning rate (lower values lead to a longer decay)
+
+# helps accelerate gradients vectors in the right directions, thus leading
+# to faster converging
+momentum: 0.937  # SGD momentum
+
+# L2 penalty. added to loss function to prevent overfitting 
+# by penalizing large weights
+weight_decay: 0.0005  # Optimizer weight decay
+
+# Number of epochs for warmup. start at this value and increases
+# to regular momentum value.
+warmup_epochs: 3.0  # Warmup period in epochs
+
+# initial momentum during warmup. momentum starts at
+# this value and increases to the regular momentum value.
+warmup_momentum: 0.8  # Warmup initial momentum
+
+# Initial learning rate for bias parameters during learning. 
+# Specifically for bias terms in the layers
+warmup_bias_lr: 0.1  # Warmup initial bias learning rate
+
+
+#Loass Function Hyperparameters
+
+# controls the weight of the bounding box regression loss in
+# the total loss
+box: 0.05  # Box loss gain
+
+# controls weight of the classifier loss in the total loss
+cls: 0.5  # Class loss gain
+
+# multiplier for positive samples
+# in the classification loss, which can help in handling 
+# class imbalance
+cls_pw: 1.0  # Class loss positive weight
+
+# controls the weight of the objectness loss in total loss
+obj: 1.0  # Object loss gain (scale with pixels)
+
+# multiplier for the positive sample in the objectness loss
+obj_pw: 1.0  # Object loss positive weight
+
+# detections below this, background
+iou_t: 0.20  # IoU training threshold
+
+# threshold to decide whether an anchor matches a ground
+# truth box
+anchor_t: 4.0  # Anchor-multiple threshold
+
+
+# Disabling automatic augmentations
+# fl_gamma: 0.0  # Focal loss gamma (focal loss only)
+# hsv_h: 0.0  # HSV-Hue augmentation (fraction)
+# hsv_s: 0.0  # HSV-Saturation augmentation (fraction)
+# hsv_v: 0.0  # HSV-Value augmentation (fraction)
+# degrees: 0.0  # Image rotation (+/- deg)
+# translate: 0.0  # Image translation (+/- fraction)
+# scale: 0.0  # Image scale (+/- gain)
+# shear: 0.0  # Image shear (+/- deg)
+# perspective: 0.0  # Image perspective (+/- fraction), range 0-0.001
+# flipud: 0.0  # Image flip up-down (probability)
+# fliplr: 0.0  # Image flip left-right (probability)
+# mosaic: 0.0  # Mosaic augmentation (probability)
+# mixup: 0.0  # Mixup augmentation (probability)
+# copy_paste: 0.0  # Copy-paste augmentation (probability)

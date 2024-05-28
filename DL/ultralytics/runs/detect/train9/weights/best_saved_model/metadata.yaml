@@ -1,0 +1,15 @@
+description: Ultralytics YOLOv8n model trained on D:\Projects\DL\MonumentDetection\DL\ultralytics\config.yaml
+author: Ultralytics
+date: '2024-05-28T12:48:38.190727'
+version: 8.2.18
+license: AGPL-3.0 License (https://ultralytics.com/license)
+docs: https://docs.ultralytics.com
+stride: 32
+task: detect
+batch: 1
+imgsz:
+- 640
+- 640
+names:
+  0: nyathapola
+  1: goldengate
