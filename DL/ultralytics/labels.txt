@@ -1,14 +1,13 @@
 Existing:
 
-0 : 
-1 : 
+0 : Chyasilin Temple
+1 : Fifty-Five Window Palace
 2 : GoldenGate
-3 : 
+3 : Krishna Temple
 4 : Nyatapola
-5 : 
-6 :
-7 :
-8 :
+5 : Silu Mahadev
+6 : Ugrabhairav
+8 : Vatsala Temple
 
 
 
@@ -16,9 +15,34 @@ Actual:
 
 0: Nyatapola
 1: GoldenGate
-3: 
-4:
-5:
-6:
-7:
-8:
+2: Chyasilin Temple 
+3: Krishna Temple
+4: Fifty-Five Window Palace
+5: Silu Mahadev
+6: Ugrabhairav
+8: Vatsala Temple
+
+To be Changed:
+
+Nyatapola from 4 to 0
+Golden Gate from 2 to 1 
+Chyasilin Temple from 0 to 2 
+Fifty-Five Window Palace from 1 to 4
+
+Step 1: 
+
+0 to 7 check
+4 to 0 check
+1 to 4 check
+2 to 1 check
+7 to 2 check
+
+0: Nyatapola
+1: Golden Gate
+2: Chyasilin Temple
+3: KT
+4: Fifty Five Window Palace
+5: SiluMahadev
+6: Ugrabhairav
+7: 
+8: Vatsala Temple
